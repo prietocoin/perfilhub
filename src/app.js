@@ -1,8 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import { env } from './config/env.js';
-import perfilesRoutes from './modules/perfiles/routes/perfiles.routes.js';
+import perfilesRoutes from './modules/directorio/routes/perfiles.routes.js'; // 👈 Ruta alineada a la carpeta
 
 const app = express();
 
