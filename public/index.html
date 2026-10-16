@@ -139,11 +139,11 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label class="text-[11px] font-semibold text-slate-400 uppercase">Nombre Socio</label>
-            <input type="text" x-model="socioEdicion.nombre" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-cyan-500">
+            <input type="text" x-model="socioEdicion.nombre" :disabled="socioEdicion.herencia" :class="socioEdicion.herencia ? 'bg-slate-900/50 text-slate-400 cursor-not-allowed border-slate-800' : 'bg-slate-900 text-white focus:border-cyan-500 border-slate-700'" class="w-full mt-1 rounded px-3 py-1.5 text-sm focus:outline-none border">
           </div>
           <div>
             <label class="text-[11px] font-semibold text-slate-400 uppercase">Moneda Nativa (Base)</label>
-            <select x-model="socioEdicion.moneda_base" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-cyan-500">
+            <select x-model="socioEdicion.moneda_base" :disabled="socioEdicion.herencia" :class="socioEdicion.herencia ? 'bg-slate-900/50 text-slate-400 cursor-not-allowed border-slate-800' : 'bg-slate-900 text-white focus:border-cyan-500 border-slate-700'" class="w-full mt-1 rounded px-3 py-1.5 text-sm focus:outline-none border">
               <option value="USDT">USDT (Tether)</option>
               <option value="PYUSD">PYUSD (PayPal USD)</option>
               <option value="USD">USD (Dólar USA)</option>
@@ -167,11 +167,11 @@
           </div>
           <div>
             <label class="text-[11px] font-semibold text-slate-400 uppercase">Saldo Inicial Base</label>
-            <input type="number" step="0.01" x-model="socioEdicion.saldo_inicial" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm text-white">
+            <input type="number" step="0.01" x-model="socioEdicion.saldo_inicial" :disabled="socioEdicion.herencia" :class="socioEdicion.herencia ? 'bg-slate-900/50 text-slate-400 cursor-not-allowed border-slate-800' : 'bg-slate-900 text-white border-slate-700'" class="w-full mt-1 rounded px-3 py-1.5 text-sm border">
           </div>
           <div>
             <label class="text-[11px] font-semibold text-slate-400 uppercase">¿Hereda Tasas?</label>
-            <select x-model="socioEdicion.herencia" @change="cambioHerencia()" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-purple-500">
+            <select x-model="socioEdicion.herencia" @change="cambioHerencia()" class="w-full mt-1 bg-slate-900 border border-purple-500/60 rounded px-3 py-1.5 text-sm text-white font-bold focus:outline-none focus:border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.15)]">
               <option :value="false">NO</option>
               <option :value="true">SÍ</option>
             </select>
@@ -180,7 +180,7 @@
 
         <div>
           <label class="text-[11px] font-semibold text-slate-400 uppercase">WhatsApp Remote JID / ID Grupo</label>
-          <input type="text" x-model="socioEdicion.id_grupo" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm font-mono text-cyan-300">
+          <input type="text" x-model="socioEdicion.id_grupo" :disabled="socioEdicion.herencia" :class="socioEdicion.herencia ? 'bg-slate-900/50 text-slate-500 cursor-not-allowed border-slate-800' : 'bg-slate-900 text-cyan-300 border-slate-700'" class="w-full mt-1 rounded px-3 py-1.5 text-sm font-mono border">
         </div>
 
         <!-- REGLAS POR PAÍS (PORCENTAJES %) -->
@@ -372,15 +372,25 @@
 
         </div>
 
-        <!-- FOOTER DEL MODAL -->
-        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-          <button @click="modalConfigAbierto = false" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
-            Cancelar
-          </button>
-          <button @click="guardarSocio()" class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-lg">
-            💾 Guardar Cambios
-          </button>
-        </div>
+        <!-- FOOTER DEL MODAL (Oculto si hereda tasas) -->
+        <template x-if="!socioEdicion.herencia">
+          <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+            <button @click="modalConfigAbierto = false" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+              Cancelar
+            </button>
+            <button @click="guardarSocio()" class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-lg">
+              💾 Guardar Cambios
+            </button>
+          </div>
+        </template>
+        <!-- Footer Alternativo para cerrar el modal cuando hereda -->
+        <template x-if="socioEdicion.herencia">
+          <div class="flex items-center justify-end pt-3 border-t border-slate-800">
+            <button @click="modalConfigAbierto = false" class="px-5 py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+              Cerrar Vista
+            </button>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -515,9 +525,21 @@
           this.modalConfigAbierto = true;
         },
 
-        cambioHerencia() {
+        async cambioHerencia() {
           this.socioEdicion.herencia = (this.socioEdicion.herencia === true || this.socioEdicion.herencia === 'true');
           this.cargarReglasSegunHerencia();
+          
+          // Guardar automáticamente el cambio de estado de herencia para UX fluida
+          try {
+            await fetch(`/api/v1/perfiles/guardar`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ...this.socioEdicion, herencia: this.socioEdicion.herencia })
+            });
+            await this.cargarSocios();
+          } catch (e) {
+            console.error('Error guardando herencia automáticamente:', e);
+          }
         },
 
         abrirNuevoSocio() {
@@ -555,7 +577,6 @@
                 };
               });
             } else {
-              // Si hereda, conserva las reglas originales del socio para no sobreescribirlas con las de FUNDDA
               let m = this.socioEdicion.monedas;
               if (typeof m === 'string') {
                 try { m = JSON.parse(m); } catch (e) { m = {}; }
