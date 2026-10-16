@@ -33,7 +33,7 @@
       <!-- BOTONES DE ACCIÓN SUPERIOR -->
       <div class="flex flex-wrap items-center gap-2">
         <button @click="cargarSocios()" class="px-3 py-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-400 text-xs font-semibold hover:bg-amber-500/20 transition flex items-center gap-1.5">
-          🌐 General
+          🌐 FUNDDA
         </button>
         <button @click="apagarTodos()" class="px-3 py-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-400 text-xs font-semibold hover:bg-rose-500/20 transition flex items-center gap-1.5">
           🔴 Apagar Todos
@@ -183,7 +183,7 @@
           <input type="text" x-model="socioEdicion.id_grupo" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm font-mono text-cyan-300">
         </div>
 
-       <!-- REGLAS POR PAÍS (PORCENTAJES %) -->
+        <!-- REGLAS POR PAÍS (PORCENTAJES %) -->
         <div class="border-t border-slate-800 pt-5 space-y-4">
           
           <!-- ========================================== -->
@@ -196,20 +196,20 @@
                 <span class="text-lg">🔗</span>
                 <div>
                   <h4 class="text-xs font-bold text-purple-300 uppercase tracking-wide">Modo Herencia Activado (Solo Lectura)</h4>
-                  <p class="text-xs text-purple-200/80 mt-0.5">Este socio hereda la configuración del perfil matriz (GENERAL). Los valores a continuación son referencias informativas.</p>
+                  <p class="text-xs text-purple-200/80 mt-0.5">Este socio hereda la configuración del perfil matriz (FUNDDA). Los valores a continuación son referencias informativas.</p>
                 </div>
               </div>
 
               <!-- LISTADO LIMPIO DE REGLAS HEREDADAS -->
               <div class="bg-[#050a1e] border border-slate-800 rounded-xl overflow-hidden">
                 <div class="px-4 py-2 bg-slate-900/50 border-b border-slate-800 flex justify-between items-center">
-                  <span class="text-xs font-bold text-slate-400 uppercase">Reglas del Perfil Matriz</span>
+                  <span class="text-xs font-bold text-slate-400 uppercase">Reglas del Perfil Matriz (FUNDDA)</span>
                   <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20" x-text="`${reglasMonedas.length} países`"></span>
                 </div>
                 
                 <div class="max-h-[300px] overflow-y-auto">
                   <template x-if="reglasMonedas.length === 0">
-                    <div class="p-6 text-center text-xs text-slate-500">GENERAL no tiene reglas configuradas.</div>
+                    <div class="p-6 text-center text-xs text-slate-500">FUNDDA no tiene reglas configuradas en la base de datos.</div>
                   </template>
                   
                   <template x-for="regla in reglasMonedas" :key="regla.codigo">
@@ -226,17 +226,17 @@
                       <!-- RESUMEN D / P -->
                       <div class="flex items-center gap-4 text-xs font-mono">
                         <div class="flex flex-col items-end">
-                          <span class="text-[9px] text-cyan-500/70 font-sans font-bold">DEPÓSITO</span>
+                          <span class="text-[9px] text-cyan-500/70 font-sans font-bold">DEPÓSITO (D)</span>
                           <span class="text-slate-300">
-                            <span :class="regla.dep_op === '+' ? 'text-emerald-400' : 'text-rose-400'" x-text="regla.dep_op"></span>
+                            <span :class="regla.dep_op === '+' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'" x-text="regla.dep_op"></span>
                             <span x-text="regla.deposito + '%'"></span>
                           </span>
                         </div>
                         <div class="w-px h-6 bg-slate-800"></div>
                         <div class="flex flex-col items-start">
-                          <span class="text-[9px] text-amber-500/70 font-sans font-bold">PAGO</span>
+                          <span class="text-[9px] text-amber-500/70 font-sans font-bold">PAGO (P)</span>
                           <span class="text-slate-300">
-                            <span :class="regla.pago_op === '+' ? 'text-emerald-400' : 'text-rose-400'" x-text="regla.pago_op"></span>
+                            <span :class="regla.pago_op === '+' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'" x-text="regla.pago_op"></span>
                             <span x-text="regla.pago + '%'"></span>
                           </span>
                         </div>
@@ -371,6 +371,7 @@
           </template>
 
         </div>
+
         <!-- FOOTER DEL MODAL -->
         <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
           <button @click="modalConfigAbierto = false" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
@@ -395,7 +396,7 @@
         reglasMonedas: [],
         monedaParaAgregar: '',
 
-        // Catálogo de las 17 entidades de TasasHub
+        // Catálogo de las entidades de TasasHub
         catalogoMonedas: {
           ARS: { nombre: 'Argentina', iso: 'AR', base: 1602 },
           VES: { nombre: 'Venezuela', iso: 'VE', base: 1000 },
@@ -473,10 +474,10 @@
           const esHerencia = (this.socioEdicion.herencia === true || this.socioEdicion.herencia === 'true');
 
           if (esHerencia) {
-            // Buscar la entidad matriz GENERAL
-            const general = this.socios.find(s => s.nombre && s.nombre.toUpperCase() === 'GENERAL');
-            if (general && general.monedas) {
-              let m = general.monedas;
+            // Busca la entidad matriz FUNDDA (o GENERAL como respaldo de seguridad)
+            const matriz = this.socios.find(s => s.nombre && (s.nombre.trim().toUpperCase() === 'FUNDDA' || s.nombre.trim().toUpperCase() === 'GENERAL'));
+            if (matriz && matriz.monedas) {
+              let m = matriz.monedas;
               if (typeof m === 'string') {
                 try { m = JSON.parse(m); } catch (e) { m = {}; }
               }
@@ -554,7 +555,7 @@
                 };
               });
             } else {
-              // Si hereda, conserva las reglas originales del socio para no sobreescribirlas con GENERAL
+              // Si hereda, conserva las reglas originales del socio para no sobreescribirlas con las de FUNDDA
               let m = this.socioEdicion.monedas;
               if (typeof m === 'string') {
                 try { m = JSON.parse(m); } catch (e) { m = {}; }
@@ -604,7 +605,7 @@
         },
 
         async apagarTodos() {
-          if (!confirm('¿Deseas apagar las tasas de todos los socios excepto GENERAL?')) return;
+          if (!confirm('¿Deseas apagar las tasas de todos los socios excepto FUNDDA?')) return;
           try {
             const res = await fetch('/api/v1/perfiles/apagar-todos', { method: 'POST' });
             if (res.ok) await this.cargarSocios();
@@ -636,6 +637,11 @@
         },
 
         async eliminarSocio(socio) {
+          if (socio.nombre && (socio.nombre.trim().toUpperCase() === 'FUNDDA' || socio.nombre.trim().toUpperCase() === 'GENERAL')) {
+            alert('No se puede eliminar la entidad matriz FUNDDA');
+            return;
+          }
+
           if (!confirm(`¿Eliminar al socio ${socio.nombre}?`)) return;
           try {
             const res = await fetch(`/api/v1/perfiles/${encodeURIComponent(socio.nombre)}`, {
