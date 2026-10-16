@@ -77,12 +77,11 @@
             </span>
 
             <!-- BADGE HERENCIA -->
-          
-<span 
-  :class="socio.herencia ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'"
-  class="text-[11px] font-semibold px-2 py-0.5 rounded-md border">
-  <span x-text="socio.herencia ? '🔗 HERENCIA: ON' : '⛓️‍💥 HERENCIA: OFF'"></span>
-</span>
+            <span 
+              :class="socio.herencia ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'"
+              class="text-[11px] font-semibold px-2 py-0.5 rounded-md border">
+              <span x-text="socio.herencia ? '🔗 HERENCIA: ON' : '⛓️‍💥 HERENCIA: OFF'"></span>
+            </span>
 
             <!-- BADGES DE MONEDA Y ROL -->
             <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20" x-text="socio.rol || 'SOCIO'"></span>
@@ -172,7 +171,7 @@
           </div>
           <div>
             <label class="text-[11px] font-semibold text-slate-400 uppercase">¿Hereda Tasas?</label>
-            <select x-model="socioEdicion.herencia" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm text-white">
+            <select x-model="socioEdicion.herencia" @change="cambioHerencia()" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-purple-500">
               <option :value="false">NO</option>
               <option :value="true">SÍ</option>
             </select>
@@ -187,14 +186,25 @@
         <!-- REGLAS POR PAÍS (PORCENTAJES %) -->
         <div class="border-t border-slate-800 pt-5 space-y-4">
           
+          <!-- BANNER DE HERENCIA -->
+          <div x-show="socioEdicion.herencia" class="bg-purple-950/40 border border-purple-500/40 rounded-xl p-3.5 flex items-start gap-3">
+            <span class="text-lg">🔗</span>
+            <div>
+              <h4 class="text-xs font-bold text-purple-300 uppercase tracking-wide">Modo Herencia Activado (Solo Lectura)</h4>
+              <p class="text-xs text-purple-200/80 mt-0.5">Este socio hereda la configuración del perfil matriz (GENERAL). Los valores se muestran como referencia informativa y no pueden editarse directamente aquí.</p>
+            </div>
+          </div>
+
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h3 class="text-xs font-bold text-slate-200 tracking-wider uppercase flex items-center gap-2">
-              <span>Reglas por País (Porcentajes %)</span>
-              <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20" x-text="`${reglasMonedas.length} activas`"></span>
+              <span x-text="socioEdicion.herencia ? 'Reglas Heredadas (Porcentajes %)' : 'Reglas por País (Porcentajes %)'"></span>
+              <span class="text-[10px] px-2 py-0.5 rounded border" 
+                    :class="socioEdicion.herencia ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-purple-500/10 text-purple-300 border-purple-500/20'"
+                    x-text="`${reglasMonedas.length} activas`"></span>
             </h3>
             
-            <!-- CONTROL: AGREGAR MONEDA -->
-            <div class="flex items-center gap-2">
+            <!-- CONTROL: AGREGAR MONEDA (Oculto en herencia) -->
+            <div class="flex items-center gap-2" x-show="!socioEdicion.herencia">
               <select 
                 x-model="monedaParaAgregar" 
                 class="bg-[#030611] border border-slate-700 text-xs rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500">
@@ -217,19 +227,23 @@
           <!-- GRID DE TARJETAS POR MONEDA -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[380px] overflow-y-auto pr-1">
             <template x-for="(regla, index) in reglasMonedas" :key="regla.codigo">
-              <div class="bg-[#050a1e] border border-purple-500/30 hover:border-purple-500/50 rounded-xl p-3.5 space-y-3 shadow-md transition">
+              <div 
+                :class="socioEdicion.herencia ? 'border-slate-800/80 bg-[#040817] opacity-80' : 'bg-[#050a1e] border-purple-500/30 hover:border-purple-500/50'"
+                class="border rounded-xl p-3.5 space-y-3 shadow-md transition">
                 
                 <!-- CABECERA DE LA TARJETA -->
                 <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
                   <div class="flex items-center gap-2">
                     <span class="text-xs font-mono font-bold text-cyan-400" x-text="regla.iso"></span>
-                    <span class="text-sm font-bold text-white tracking-wide" x-text="`${regla.nombre} (${regla.codigo})`"></span>
+                    <span class="text-sm font-bold tracking-wide" :class="socioEdicion.herencia ? 'text-slate-300' : 'text-white'" x-text="`${regla.nombre} (${regla.codigo})`"></span>
                   </div>
 
                   <div class="flex items-center gap-3">
                     <div class="flex items-center gap-1.5">
-                      <span class="text-[10px] text-slate-400 font-bold uppercase">DEF:</span>
-                      <select x-model="regla.def" class="bg-[#030611] border border-slate-700 text-xs text-cyan-400 rounded px-2 py-0.5 font-bold focus:outline-none">
+                      <span class="text-[10px] font-bold uppercase" :class="socioEdicion.herencia ? 'text-slate-500' : 'text-slate-400'">DEF:</span>
+                      <select x-model="regla.def" :disabled="socioEdicion.herencia" 
+                              class="bg-[#030611] border border-slate-700 text-xs rounded px-2 py-0.5 font-bold focus:outline-none"
+                              :class="socioEdicion.herencia ? 'text-slate-500 cursor-not-allowed border-slate-800' : 'text-cyan-400'">
                         <option value="D">D (Depósito)</option>
                         <option value="P">P (Pago)</option>
                       </select>
@@ -238,6 +252,7 @@
                     <button 
                       type="button" 
                       @click="eliminarReglaMoneda(index)" 
+                      x-show="!socioEdicion.herencia"
                       class="text-slate-400 hover:text-rose-400 text-sm transition p-1" 
                       title="Quitar país">
                       🗑
@@ -249,21 +264,25 @@
                 <div class="grid grid-cols-2 gap-3">
                   
                   <!-- BLOQUE: DEPÓSITO (D) -->
-                  <div class="bg-[#030611] border border-cyan-950/80 rounded-lg p-2.5 space-y-1.5">
+                  <div class="bg-[#030611] rounded-lg p-2.5 space-y-1.5 border"
+                       :class="socioEdicion.herencia ? 'border-slate-850' : 'border-cyan-950/80'">
                     <div class="flex items-center justify-between">
-                      <span class="text-[10px] font-bold text-cyan-400">DEPÓSITO (D) %</span>
-                      <span class="text-[10px] font-mono text-slate-400" x-text="regla.base ? Number(regla.base).toLocaleString() : '-'"></span>
+                      <span class="text-[10px] font-bold" :class="socioEdicion.herencia ? 'text-slate-400' : 'text-cyan-400'">DEPÓSITO (D) %</span>
+                      <span class="text-[10px] font-mono text-slate-500" x-text="regla.base ? Number(regla.base).toLocaleString() : '-'"></span>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <input 
                         type="number" 
                         step="0.01" 
                         x-model="regla.deposito" 
-                        class="w-full bg-[#070e23] border border-slate-800 rounded px-2 py-1 text-center font-bold text-xs text-white focus:outline-none focus:border-cyan-500">
+                        :disabled="socioEdicion.herencia"
+                        :class="socioEdicion.herencia ? 'text-slate-400 cursor-not-allowed bg-slate-900/50' : 'text-white bg-[#070e23] focus:border-cyan-500'"
+                        class="w-full border border-slate-800 rounded px-2 py-1 text-center font-bold text-xs focus:outline-none">
                       <button 
                         type="button" 
                         @click="regla.dep_op = (regla.dep_op === '+' ? '-' : '+')"
-                        :class="regla.dep_op === '+' ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/40 bg-rose-500/10 text-rose-400'"
+                        :disabled="socioEdicion.herencia"
+                        :class="socioEdicion.herencia ? 'border-slate-800 bg-slate-900 text-slate-500 cursor-not-allowed' : (regla.dep_op === '+' ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/40 bg-rose-500/10 text-rose-400')"
                         class="px-2 py-1 rounded text-[11px] font-bold border shrink-0 transition"
                         x-text="regla.dep_op === '+' ? '+ Suma' : '- Resta'">
                       </button>
@@ -271,21 +290,25 @@
                   </div>
 
                   <!-- BLOQUE: PAGO (P) -->
-                  <div class="bg-[#030611] border border-amber-950/80 rounded-lg p-2.5 space-y-1.5">
+                  <div class="bg-[#030611] rounded-lg p-2.5 space-y-1.5 border"
+                       :class="socioEdicion.herencia ? 'border-slate-850' : 'border-amber-950/80'">
                     <div class="flex items-center justify-between">
-                      <span class="text-[10px] font-bold text-amber-400">PAGO (P) %</span>
-                      <span class="text-[10px] font-mono text-slate-400" x-text="regla.base ? Number(regla.base).toLocaleString() : '-'"></span>
+                      <span class="text-[10px] font-bold" :class="socioEdicion.herencia ? 'text-slate-400' : 'text-amber-400'">PAGO (P) %</span>
+                      <span class="text-[10px] font-mono text-slate-500" x-text="regla.base ? Number(regla.base).toLocaleString() : '-'"></span>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <input 
                         type="number" 
                         step="0.01" 
                         x-model="regla.pago" 
-                        class="w-full bg-[#070e23] border border-slate-800 rounded px-2 py-1 text-center font-bold text-xs text-white focus:outline-none focus:border-amber-500">
+                        :disabled="socioEdicion.herencia"
+                        :class="socioEdicion.herencia ? 'text-slate-400 cursor-not-allowed bg-slate-900/50' : 'text-white bg-[#070e23] focus:border-amber-500'"
+                        class="w-full border border-slate-800 rounded px-2 py-1 text-center font-bold text-xs focus:outline-none">
                       <button 
                         type="button" 
                         @click="regla.pago_op = (regla.pago_op === '-' ? '+' : '-')"
-                        :class="regla.pago_op === '-' ? 'border-rose-500/40 bg-rose-500/10 text-rose-400' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'"
+                        :disabled="socioEdicion.herencia"
+                        :class="socioEdicion.herencia ? 'border-slate-800 bg-slate-900 text-slate-500 cursor-not-allowed' : (regla.pago_op === '-' ? 'border-rose-500/40 bg-rose-500/10 text-rose-400' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400')"
                         class="px-2 py-1 rounded text-[11px] font-bold border shrink-0 transition"
                         x-text="regla.pago_op === '-' ? '- Resta' : '+ Suma'">
                       </button>
@@ -299,7 +322,7 @@
           </div>
 
           <div x-show="reglasMonedas.length === 0" class="text-center py-6 border border-dashed border-slate-800 rounded-xl text-slate-500 text-xs">
-            Sin reglas individuales. El socio heredará las tasas generales o no tendrá márgenes configurados.
+            Sin reglas configuradas.
           </div>
 
         </div>
@@ -399,15 +422,30 @@
           this.reglasMonedas.splice(index, 1);
         },
 
-        abrirConfiguracion(socio) {
-          this.socioEdicion = JSON.parse(JSON.stringify(socio));
+        cargarReglasSegunHerencia() {
           this.reglasMonedas = [];
+          let rawMonedas = {};
 
-          let rawMonedas = socio.monedas;
-          if (typeof rawMonedas === 'string') {
-            try { rawMonedas = JSON.parse(rawMonedas); } catch (e) { rawMonedas = {}; }
+          const esHerencia = (this.socioEdicion.herencia === true || this.socioEdicion.herencia === 'true');
+
+          if (esHerencia) {
+            // Buscar la entidad matriz GENERAL
+            const general = this.socios.find(s => s.nombre && s.nombre.toUpperCase() === 'GENERAL');
+            if (general && general.monedas) {
+              let m = general.monedas;
+              if (typeof m === 'string') {
+                try { m = JSON.parse(m); } catch (e) { m = {}; }
+              }
+              rawMonedas = m || {};
+            }
+          } else {
+            // Reglas individuales propias del socio
+            let m = this.socioEdicion.monedas;
+            if (typeof m === 'string') {
+              try { m = JSON.parse(m); } catch (e) { m = {}; }
+            }
+            rawMonedas = m || {};
           }
-          rawMonedas = rawMonedas || {};
 
           for (const [cod, data] of Object.entries(rawMonedas)) {
             const meta = this.catalogoMonedas[cod] || {};
@@ -420,11 +458,21 @@
               deposito: data.deposito ?? data.deposito_pct ?? 0,
               dep_op: data.dep_op || data.deposito_op || '+',
               pago: data.pago ?? data.pago_pct ?? 0,
-              pago_op: data.pago_op || data.pago_op || '-'
+              pago_op: data.pago_op || '-'
             });
           }
+        },
 
+        abrirConfiguracion(socio) {
+          this.socioEdicion = JSON.parse(JSON.stringify(socio));
+          this.socioEdicion.herencia = !!socio.herencia;
+          this.cargarReglasSegunHerencia();
           this.modalConfigAbierto = true;
+        },
+
+        cambioHerencia() {
+          this.socioEdicion.herencia = (this.socioEdicion.herencia === true || this.socioEdicion.herencia === 'true');
+          this.cargarReglasSegunHerencia();
         },
 
         abrirNuevoSocio() {
@@ -434,7 +482,8 @@
             saldo_inicial: 0,
             herencia: false,
             id_grupo: '',
-            mostrar: { tasas: true, dashboard: true }
+            mostrar: { tasas: true, dashboard: true },
+            monedas: {}
           };
           this.reglasMonedas = [];
           this.modalConfigAbierto = true;
@@ -447,20 +496,32 @@
           }
 
           try {
-            const monedasObj = {};
-            this.reglasMonedas.forEach(r => {
-              monedasObj[r.codigo] = {
-                def: r.def,
-                deposito: parseFloat(r.deposito) || 0,
-                dep_op: r.dep_op,
-                pago: parseFloat(r.pago) || 0,
-                pago_op: r.pago_op
-              };
-            });
+            const esHerencia = (this.socioEdicion.herencia === true || this.socioEdicion.herencia === 'true');
+            let monedasFinal = {};
+
+            if (!esHerencia) {
+              this.reglasMonedas.forEach(r => {
+                monedasFinal[r.codigo] = {
+                  def: r.def,
+                  deposito: parseFloat(r.deposito) || 0,
+                  dep_op: r.dep_op,
+                  pago: parseFloat(r.pago) || 0,
+                  pago_op: r.pago_op
+                };
+              });
+            } else {
+              // Si hereda, conserva las reglas originales del socio para no sobreescribirlas con GENERAL
+              let m = this.socioEdicion.monedas;
+              if (typeof m === 'string') {
+                try { m = JSON.parse(m); } catch (e) { m = {}; }
+              }
+              monedasFinal = m || {};
+            }
 
             const payload = {
               ...this.socioEdicion,
-              monedas: monedasObj
+              herencia: esHerencia,
+              monedas: monedasFinal
             };
 
             const res = await fetch('/api/v1/perfiles/guardar', {
