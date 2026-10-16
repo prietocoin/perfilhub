@@ -183,150 +183,194 @@
           <input type="text" x-model="socioEdicion.id_grupo" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-sm font-mono text-cyan-300">
         </div>
 
-        <!-- REGLAS POR PAÍS (PORCENTAJES %) -->
+       <!-- REGLAS POR PAÍS (PORCENTAJES %) -->
         <div class="border-t border-slate-800 pt-5 space-y-4">
           
-          <!-- BANNER DE HERENCIA -->
-          <div x-show="socioEdicion.herencia" class="bg-purple-950/40 border border-purple-500/40 rounded-xl p-3.5 flex items-start gap-3">
-            <span class="text-lg">🔗</span>
-            <div>
-              <h4 class="text-xs font-bold text-purple-300 uppercase tracking-wide">Modo Herencia Activado (Solo Lectura)</h4>
-              <p class="text-xs text-purple-200/80 mt-0.5">Este socio hereda la configuración del perfil matriz (GENERAL). Los valores se muestran como referencia informativa y no pueden editarse directamente aquí.</p>
-            </div>
-          </div>
-
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h3 class="text-xs font-bold text-slate-200 tracking-wider uppercase flex items-center gap-2">
-              <span x-text="socioEdicion.herencia ? 'Reglas Heredadas (Porcentajes %)' : 'Reglas por País (Porcentajes %)'"></span>
-              <span class="text-[10px] px-2 py-0.5 rounded border" 
-                    :class="socioEdicion.herencia ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-purple-500/10 text-purple-300 border-purple-500/20'"
-                    x-text="`${reglasMonedas.length} activas`"></span>
-            </h3>
-            
-            <!-- CONTROL: AGREGAR MONEDA (Oculto en herencia) -->
-            <div class="flex items-center gap-2" x-show="!socioEdicion.herencia">
-              <select 
-                x-model="monedaParaAgregar" 
-                class="bg-[#030611] border border-slate-700 text-xs rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500">
-                <option value="">Seleccionar país/moneda...</option>
-                <template x-for="(meta, cod) in catalogoMonedas" :key="cod">
-                  <option :value="cod" x-text="`${meta.iso} ${meta.nombre} (${cod})`" :disabled="tieneRegla(cod)"></option>
-                </template>
-              </select>
-
-              <button 
-                type="button" 
-                @click="agregarReglaMoneda()" 
-                :disabled="!monedaParaAgregar"
-                class="px-3 py-1.5 rounded-lg border border-cyan-500/50 bg-cyan-500/10 text-cyan-400 text-xs font-bold hover:bg-cyan-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1">
-                + Agregar Moneda
-              </button>
-            </div>
-          </div>
-
-          <!-- GRID DE TARJETAS POR MONEDA -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[380px] overflow-y-auto pr-1">
-            <template x-for="(regla, index) in reglasMonedas" :key="regla.codigo">
-              <div 
-                :class="socioEdicion.herencia ? 'border-slate-800/80 bg-[#040817] opacity-80' : 'bg-[#050a1e] border-purple-500/30 hover:border-purple-500/50'"
-                class="border rounded-xl p-3.5 space-y-3 shadow-md transition">
-                
-                <!-- CABECERA DE LA TARJETA -->
-                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs font-mono font-bold text-cyan-400" x-text="regla.iso"></span>
-                    <span class="text-sm font-bold tracking-wide" :class="socioEdicion.herencia ? 'text-slate-300' : 'text-white'" x-text="`${regla.nombre} (${regla.codigo})`"></span>
-                  </div>
-
-                  <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-1.5">
-                      <span class="text-[10px] font-bold uppercase" :class="socioEdicion.herencia ? 'text-slate-500' : 'text-slate-400'">DEF:</span>
-                      <select x-model="regla.def" :disabled="socioEdicion.herencia" 
-                              class="bg-[#030611] border border-slate-700 text-xs rounded px-2 py-0.5 font-bold focus:outline-none"
-                              :class="socioEdicion.herencia ? 'text-slate-500 cursor-not-allowed border-slate-800' : 'text-cyan-400'">
-                        <option value="D">D (Depósito)</option>
-                        <option value="P">P (Pago)</option>
-                      </select>
-                    </div>
-                    
-                    <button 
-                      type="button" 
-                      @click="eliminarReglaMoneda(index)" 
-                      x-show="!socioEdicion.herencia"
-                      class="text-slate-400 hover:text-rose-400 text-sm transition p-1" 
-                      title="Quitar país">
-                      🗑
-                    </button>
-                  </div>
+          <!-- ========================================== -->
+          <!-- VISTA MODO HERENCIA (SÍ) - LISTADO RESUMIDO  -->
+          <!-- ========================================== -->
+          <template x-if="socioEdicion.herencia">
+            <div class="space-y-4">
+              <!-- BANNER INFORMATIVO -->
+              <div class="bg-purple-950/40 border border-purple-500/40 rounded-xl p-3.5 flex items-start gap-3">
+                <span class="text-lg">🔗</span>
+                <div>
+                  <h4 class="text-xs font-bold text-purple-300 uppercase tracking-wide">Modo Herencia Activado (Solo Lectura)</h4>
+                  <p class="text-xs text-purple-200/80 mt-0.5">Este socio hereda la configuración del perfil matriz (GENERAL). Los valores a continuación son referencias informativas.</p>
                 </div>
-
-                <!-- CONTENIDO: DEPÓSITO Y PAGO -->
-                <div class="grid grid-cols-2 gap-3">
-                  
-                  <!-- BLOQUE: DEPÓSITO (D) -->
-                  <div class="bg-[#030611] rounded-lg p-2.5 space-y-1.5 border"
-                       :class="socioEdicion.herencia ? 'border-slate-850' : 'border-cyan-950/80'">
-                    <div class="flex items-center justify-between">
-                      <span class="text-[10px] font-bold" :class="socioEdicion.herencia ? 'text-slate-400' : 'text-cyan-400'">DEPÓSITO (D) %</span>
-                      <span class="text-[10px] font-mono text-slate-500" x-text="regla.base ? Number(regla.base).toLocaleString() : '-'"></span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                      <input 
-                        type="number" 
-                        step="0.01" 
-                        x-model="regla.deposito" 
-                        :disabled="socioEdicion.herencia"
-                        :class="socioEdicion.herencia ? 'text-slate-400 cursor-not-allowed bg-slate-900/50' : 'text-white bg-[#070e23] focus:border-cyan-500'"
-                        class="w-full border border-slate-800 rounded px-2 py-1 text-center font-bold text-xs focus:outline-none">
-                      <button 
-                        type="button" 
-                        @click="regla.dep_op = (regla.dep_op === '+' ? '-' : '+')"
-                        :disabled="socioEdicion.herencia"
-                        :class="socioEdicion.herencia ? 'border-slate-800 bg-slate-900 text-slate-500 cursor-not-allowed' : (regla.dep_op === '+' ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/40 bg-rose-500/10 text-rose-400')"
-                        class="px-2 py-1 rounded text-[11px] font-bold border shrink-0 transition"
-                        x-text="regla.dep_op === '+' ? '+ Suma' : '- Resta'">
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- BLOQUE: PAGO (P) -->
-                  <div class="bg-[#030611] rounded-lg p-2.5 space-y-1.5 border"
-                       :class="socioEdicion.herencia ? 'border-slate-850' : 'border-amber-950/80'">
-                    <div class="flex items-center justify-between">
-                      <span class="text-[10px] font-bold" :class="socioEdicion.herencia ? 'text-slate-400' : 'text-amber-400'">PAGO (P) %</span>
-                      <span class="text-[10px] font-mono text-slate-500" x-text="regla.base ? Number(regla.base).toLocaleString() : '-'"></span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                      <input 
-                        type="number" 
-                        step="0.01" 
-                        x-model="regla.pago" 
-                        :disabled="socioEdicion.herencia"
-                        :class="socioEdicion.herencia ? 'text-slate-400 cursor-not-allowed bg-slate-900/50' : 'text-white bg-[#070e23] focus:border-amber-500'"
-                        class="w-full border border-slate-800 rounded px-2 py-1 text-center font-bold text-xs focus:outline-none">
-                      <button 
-                        type="button" 
-                        @click="regla.pago_op = (regla.pago_op === '-' ? '+' : '-')"
-                        :disabled="socioEdicion.herencia"
-                        :class="socioEdicion.herencia ? 'border-slate-800 bg-slate-900 text-slate-500 cursor-not-allowed' : (regla.pago_op === '-' ? 'border-rose-500/40 bg-rose-500/10 text-rose-400' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400')"
-                        class="px-2 py-1 rounded text-[11px] font-bold border shrink-0 transition"
-                        x-text="regla.pago_op === '-' ? '- Resta' : '+ Suma'">
-                      </button>
-                    </div>
-                  </div>
-
-                </div>
-
               </div>
-            </template>
-          </div>
 
-          <div x-show="reglasMonedas.length === 0" class="text-center py-6 border border-dashed border-slate-800 rounded-xl text-slate-500 text-xs">
-            Sin reglas configuradas.
-          </div>
+              <!-- LISTADO LIMPIO DE REGLAS HEREDADAS -->
+              <div class="bg-[#050a1e] border border-slate-800 rounded-xl overflow-hidden">
+                <div class="px-4 py-2 bg-slate-900/50 border-b border-slate-800 flex justify-between items-center">
+                  <span class="text-xs font-bold text-slate-400 uppercase">Reglas del Perfil Matriz</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20" x-text="`${reglasMonedas.length} países`"></span>
+                </div>
+                
+                <div class="max-h-[300px] overflow-y-auto">
+                  <template x-if="reglasMonedas.length === 0">
+                    <div class="p-6 text-center text-xs text-slate-500">GENERAL no tiene reglas configuradas.</div>
+                  </template>
+                  
+                  <template x-for="regla in reglasMonedas" :key="regla.codigo">
+                    <div class="px-4 py-2.5 border-b border-slate-800/50 last:border-0 flex items-center justify-between hover:bg-slate-800/30 transition">
+                      <!-- PAÍS -->
+                      <div class="flex items-center gap-3">
+                        <span class="text-xs font-mono font-bold text-cyan-400" x-text="regla.iso"></span>
+                        <div>
+                          <p class="text-xs font-bold text-slate-200" x-text="`${regla.nombre} (${regla.codigo})`"></p>
+                          <p class="text-[10px] text-slate-500 font-mono" x-text="`Base: ${regla.base ? Number(regla.base).toLocaleString() : '-'}`"></p>
+                        </div>
+                      </div>
+                      
+                      <!-- RESUMEN D / P -->
+                      <div class="flex items-center gap-4 text-xs font-mono">
+                        <div class="flex flex-col items-end">
+                          <span class="text-[9px] text-cyan-500/70 font-sans font-bold">DEPÓSITO</span>
+                          <span class="text-slate-300">
+                            <span :class="regla.dep_op === '+' ? 'text-emerald-400' : 'text-rose-400'" x-text="regla.dep_op"></span>
+                            <span x-text="regla.deposito + '%'"></span>
+                          </span>
+                        </div>
+                        <div class="w-px h-6 bg-slate-800"></div>
+                        <div class="flex flex-col items-start">
+                          <span class="text-[9px] text-amber-500/70 font-sans font-bold">PAGO</span>
+                          <span class="text-slate-300">
+                            <span :class="regla.pago_op === '+' ? 'text-emerald-400' : 'text-rose-400'" x-text="regla.pago_op"></span>
+                            <span x-text="regla.pago + '%'"></span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- ========================================== -->
+          <!-- VISTA MODO EDICIÓN (NO) - TARJETAS ACTIVAS   -->
+          <!-- ========================================== -->
+          <template x-if="!socioEdicion.herencia">
+            <div class="space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h3 class="text-xs font-bold text-slate-200 tracking-wider uppercase flex items-center gap-2">
+                  <span>Reglas Individuales (%)</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded border bg-cyan-500/10 text-cyan-300 border-cyan-500/20" x-text="`${reglasMonedas.length} activas`"></span>
+                </h3>
+                
+                <!-- CONTROL: AGREGAR MONEDA -->
+                <div class="flex items-center gap-2">
+                  <select 
+                    x-model="monedaParaAgregar" 
+                    class="bg-[#030611] border border-slate-700 text-xs rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500">
+                    <option value="">Seleccionar país/moneda...</option>
+                    <template x-for="(meta, cod) in catalogoMonedas" :key="cod">
+                      <option :value="cod" x-text="`${meta.iso} ${meta.nombre} (${cod})`" :disabled="tieneRegla(cod)"></option>
+                    </template>
+                  </select>
+
+                  <button 
+                    type="button" 
+                    @click="agregarReglaMoneda()" 
+                    :disabled="!monedaParaAgregar"
+                    class="px-3 py-1.5 rounded-lg border border-cyan-500/50 bg-cyan-500/10 text-cyan-400 text-xs font-bold hover:bg-cyan-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1">
+                    + Agregar Moneda
+                  </button>
+                </div>
+              </div>
+
+              <!-- GRID DE TARJETAS POR MONEDA -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[380px] overflow-y-auto pr-1">
+                <template x-for="(regla, index) in reglasMonedas" :key="regla.codigo">
+                  <div class="bg-[#050a1e] border border-purple-500/30 hover:border-purple-500/50 rounded-xl p-3.5 space-y-3 shadow-md transition">
+                    
+                    <!-- CABECERA DE LA TARJETA -->
+                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono font-bold text-cyan-400" x-text="regla.iso"></span>
+                        <span class="text-sm font-bold text-white tracking-wide" x-text="`${regla.nombre} (${regla.codigo})`"></span>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1.5">
+                          <span class="text-[10px] font-bold uppercase text-slate-400">DEF:</span>
+                          <select x-model="regla.def" class="bg-[#030611] border border-slate-700 text-xs text-cyan-400 rounded px-2 py-0.5 font-bold focus:outline-none">
+                            <option value="D">D (Depósito)</option>
+                            <option value="P">P (Pago)</option>
+                          </select>
+                        </div>
+                        
+                        <button 
+                          type="button" 
+                          @click="eliminarReglaMoneda(index)" 
+                          class="text-slate-400 hover:text-rose-400 text-sm transition p-1" 
+                          title="Quitar país">
+                          🗑
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- CONTENIDO: DEPÓSITO Y PAGO -->
+                    <div class="grid grid-cols-2 gap-3">
+                      
+                      <!-- BLOQUE: DEPÓSITO (D) -->
+                      <div class="bg-[#030611] rounded-lg p-2.5 space-y-1.5 border border-cyan-950/80">
+                        <div class="flex items-center justify-between">
+                          <span class="text-[10px] font-bold text-cyan-400">DEPÓSITO (D) %</span>
+                          <span class="text-[10px] font-mono text-slate-500" x-text="regla.base ? Number(regla.base).toLocaleString() : '-'"></span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                          <input 
+                            type="number" 
+                            step="0.01" 
+                            x-model="regla.deposito" 
+                            class="w-full bg-[#070e23] border border-slate-800 rounded px-2 py-1 text-center font-bold text-xs text-white focus:outline-none focus:border-cyan-500">
+                          <button 
+                            type="button" 
+                            @click="regla.dep_op = (regla.dep_op === '+' ? '-' : '+')"
+                            :class="regla.dep_op === '+' ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/40 bg-rose-500/10 text-rose-400'"
+                            class="px-2 py-1 rounded text-[11px] font-bold border shrink-0 transition"
+                            x-text="regla.dep_op === '+' ? '+ Suma' : '- Resta'">
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- BLOQUE: PAGO (P) -->
+                      <div class="bg-[#030611] rounded-lg p-2.5 space-y-1.5 border border-amber-950/80">
+                        <div class="flex items-center justify-between">
+                          <span class="text-[10px] font-bold text-amber-400">PAGO (P) %</span>
+                          <span class="text-[10px] font-mono text-slate-500" x-text="regla.base ? Number(regla.base).toLocaleString() : '-'"></span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                          <input 
+                            type="number" 
+                            step="0.01" 
+                            x-model="regla.pago" 
+                            class="w-full bg-[#070e23] border border-slate-800 rounded px-2 py-1 text-center font-bold text-xs text-white focus:outline-none focus:border-amber-500">
+                          <button 
+                            type="button" 
+                            @click="regla.pago_op = (regla.pago_op === '-' ? '+' : '-')"
+                            :class="regla.pago_op === '-' ? 'border-rose-500/40 bg-rose-500/10 text-rose-400' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'"
+                            class="px-2 py-1 rounded text-[11px] font-bold border shrink-0 transition"
+                            x-text="regla.pago_op === '-' ? '- Resta' : '+ Suma'">
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+                </template>
+              </div>
+
+              <div x-show="reglasMonedas.length === 0" class="text-center py-6 border border-dashed border-slate-800 rounded-xl text-slate-500 text-xs">
+                Sin reglas configuradas.
+              </div>
+            </div>
+          </template>
 
         </div>
-
         <!-- FOOTER DEL MODAL -->
         <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
           <button @click="modalConfigAbierto = false" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
